@@ -15,6 +15,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 type Definitions struct {
@@ -99,7 +101,16 @@ func main() {
 		*key = os.Getenv("WORDNIKAPIKEY")
 	}
 	if *key == "" {
-		log.Fatal("$WORDNIKAPIKEY not set")
+		const name = ".define-api-key"
+		filename := filepath.Clean(os.Getenv("HOME") + "/" + name)
+		shortFilename := "$HOME/" + name
+		data, err := os.ReadFile(filename)
+		if err != nil {
+			log.Fatal("reading API key: ", err, "\n\n"+
+				"Please request your WORDNIK API key at https://wordnik.com and write it\n"+
+				"to $WORDNIKAPIKEY or ", shortFilename, " to use this program.\n")
+		}
+		*key = strings.TrimSpace(string(data))
 	}
 	v := make(url.Values)
 	v.Set("api_key", *key)
